@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-if ! command -v aws >/dev/null; then
-  apt-get update -qq \
-  && apt-get install -y -qq python3-pip \
-  && pip3 install --no-cache-dir awscli
-fi
+# start cron in foreground (-f) so Render keeps the process alive
+cron -f &
 
 exec "$@"
