@@ -1,21 +1,29 @@
 FROM n8nio/n8n:latest
 
-# Switch to root for installing dependencies
-USER 0
+# Switch to root to install tools
+USER root
 
-# Install required tools
+# Install tools and cron using apt (because it's Debian-based now)
 RUN set -eux; \
-    apk add --no-cache bash curl cron gzip python3 py3-pip; \
-    pip3 install --no-cache-dir awscli
+  apt-get update -qq && \
+  apt-get install -y --no-install-recommends \
+    bash \
+    curl \
+    cron \
+    gzip \
+    python3 \
+    python3-pip && \
+  pip3 install --no-cache-dir awscli && \
+  rm -rf /var/lib/apt/lists/*
 
-# Copy backup scripts
+# Copy files
 COPY start.sh /start.sh
 COPY etc/ /etc/
 
-# Permissions and cron setup
-RUN chmod +x /start.sh /etc/cron.daily/pg_r2_backup.sh; \
-    chmod 0644 /etc/cron.d/pg_r2_backup; \
+# Set permissions and add cron job
+RUN chmod +x /start.sh /etc/cron.daily/pg_r2_backup.sh && \
+    chmod 0644 /etc/cron.d/pg_r2_backup && \
     crontab /etc/cron.d/pg_r2_backup
 
-# Switch back to default non-root user
+# Switch back to n8n user (default)
 USER node
