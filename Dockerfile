@@ -1,29 +1,30 @@
 FROM n8nio/n8n:latest
 
-# Switch to root to install tools
+# Switch to root user to install tools
 USER root
 
-# Install tools and cron using apt (because it's Debian-based now)
+# Install tools using apk (Alpine Linux)
 RUN set -eux; \
-  apt-get update -qq && \
-  apt-get install -y --no-install-recommends \
+  apk add --no-cache \
     bash \
     curl \
-    cron \
+    dcron \
     gzip \
     python3 \
-    python3-pip && \
-  pip3 install --no-cache-dir awscli && \
-  rm -rf /var/lib/apt/lists/*
+    py3-pip && \
+  pip3 install --no-cache-dir awscli
 
-# Copy files
+# Copy helper scripts and cron files
 COPY start.sh /start.sh
 COPY etc/ /etc/
 
-# Set permissions and add cron job
+# Set permissions and register cron job
 RUN chmod +x /start.sh /etc/cron.daily/pg_r2_backup.sh && \
     chmod 0644 /etc/cron.d/pg_r2_backup && \
     crontab /etc/cron.d/pg_r2_backup
 
-# Switch back to n8n user (default)
+# Switch back to n8n user (best practice for security)
 USER node
+
+# Start script (optional if you're using it to trigger cron/start n8n)
+ENTRYPOINT ["bash", "/start.sh"]
