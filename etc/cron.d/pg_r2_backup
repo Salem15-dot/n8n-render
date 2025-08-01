@@ -1,0 +1,1 @@
+0 3 * * * root /etc/cron.daily/pg_r2_backup.sh >> /var/log/backup.log 2>&1
